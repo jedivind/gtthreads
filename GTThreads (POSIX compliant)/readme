@@ -1,0 +1,40 @@
+Vinay Bharadwaj (#902825919)
+##GTThreads user level thread library.
+
+
+PLATFORM USED:
+Developed on Fedora 15. Tested on Fedora 13 x64 and Fedora 15.
+
+PREEMPTIVE SCHEDULER:
+The scheduler is implemented as follows:
+A queue of threads is maintained. For each gtthread_create() called, the corresponding thread is created and added to the
+queue. The first time create() is called, the main() function's context is also saved and is added as a thread to the queue
+along with the first thread to be created.
+Thereafter, every call to gtthread_create creates a new context for the thread, allocates memory and adds it to the queue.
+The scheduler switches through the thread contexts in a round robin fashion at the specified time quantum intervals. The
+thread execution is preempted by setting a timer and raising a signal at every timer expiry. The associated signal handler 
+is called, which saves the thread context and switches back to the scheduler. The scheduler then switches to the next thread.
+Since main() is also implemented as a thread in the queue, the scheduler switches to main() periodically.
+
+HOW TO COMPILE:
+1) Extract the tarball into a folder.
+2) From the shell prompt run make as follows:
+	# make
+3) This should generate the library file gttrhead.a
+4) Compile your program with the library and execute it as follows:
+	# gcc main.c gtthread.a
+	# ./a.out
+   OR
+
+	# gcc -o test main.c gtthread.a
+	# test
+
+Some thoughts:
+   setcontext() doesn't work well with signals. Works fine with Fedora 15 but on Fedora 13 (default glibc) gives 
+segmentation faults (Known bug in glibc. See GNU FAQ for glibc). Replacing setcontext() with swapcontext() resolves the 
+problem. setcontext() also caused unexpected behaviour and overflows on infinite for(;;) loops without termination code.
+
+Overall, it was a good experience developing this library. Hope to make more changes and expand it in the future. Need to 
+try the sigsetjmp() and siglongjmp() approach next. 
+
+   

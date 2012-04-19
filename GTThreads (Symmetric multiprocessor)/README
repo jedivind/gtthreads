@@ -1,0 +1,4 @@
+To run the matrix program, do the following in the folder where the library is extracted:
+
+% make
+% ./matrix
