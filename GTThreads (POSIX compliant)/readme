@@ -6,10 +6,12 @@ PLATFORM USED:
 Developed on Fedora 15. Tested on Fedora 13 x64 and Fedora 15.
 
 PREEMPTIVE SCHEDULER:
+
 The scheduler is implemented as follows:
 A queue of threads is maintained. For each gtthread_create() called, the corresponding thread is created and added to the
 queue. The first time create() is called, the main() function's context is also saved and is added as a thread to the queue
-along with the first thread to be created.
+along with the first thread to be created. 
+
 Thereafter, every call to gtthread_create creates a new context for the thread, allocates memory and adds it to the queue.
 The scheduler switches through the thread contexts in a round robin fashion at the specified time quantum intervals. The
 thread execution is preempted by setting a timer and raising a signal at every timer expiry. The associated signal handler 

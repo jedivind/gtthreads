@@ -41,8 +41,7 @@ extern int uthread_create(uthread_t *u_tid, int (*u_func)(void *), void *u_arg, 
 
 /**********************************************************************/
 /* uthread scheduling */
-void gt_yield()
-{
+void gt_yield() {
 	kthread_context_t *k_ctx;
 	kthread_runqueue_t *kthread_runq;
 	uthread_struct_t *u_obj;
@@ -54,9 +53,8 @@ void gt_yield()
 	u_obj->yielded = 1;
 	
 	if(!sigsetjmp(u_obj->uthread_env,0))	
-	sched_yield();
+		sched_yield();
 	u_obj->yielded = 0;
-
 }
 
 
@@ -214,10 +212,8 @@ extern void uthread_schedule(uthread_struct_t * (*kthread_best_sched_uthread)(kt
 	/* Re-install the scheduling signal handlers */
 	set_sched_timer(kthread_runq->cfs_rq->nr_running);
 	kthread_init_vtalrm_timeslice();
-	//kthread_init_alrm_timeslice();
 	kthread_install_sighandler(SIGVTALRM, k_ctx->kthread_sched_timer);
 	kthread_install_sighandler(SIGUSR1, k_ctx->kthread_sched_relay);
-	//kthread_install_sighandler(SIGALRM, &preempt_uthread);
 	/* Jump to the selected uthread context */
 	siglongjmp(u_obj->uthread_env, 1);
 

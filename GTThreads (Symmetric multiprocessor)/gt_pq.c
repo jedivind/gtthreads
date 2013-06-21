@@ -781,30 +781,26 @@ void delete_case6(rbtree t, node n) {
 //////////////////END OF RBTREE FUNCTIONS///
 
 //SELF DEFINED FUNCTIONS, both CFS and RB tree.
-extern rbtree_node find_leftmost(rbtree t)
-{	
+extern rbtree_node find_leftmost(rbtree t) {
 	rbtree_node node = t->root;
 	if(!node) return NULL;
 	if(node->left != NULL)
-	while(node->left != NULL) node = node->left;
+		while(node->left != NULL) node = node->left;
 	
 	return node;
 }
 
-extern void update_min_vruntime(kthread_runqueue_t *kthread_runq, unsigned long vruntime)
-{
+extern void update_min_vruntime(kthread_runqueue_t *kthread_runq, unsigned long vruntime) {
 	kthread_runq->min_vruntime = vruntime;	
 }
 
-static inline int min_vruntime(int min_vruntime, int vruntime)
-{
+static inline int min_vruntime(int min_vruntime, int vruntime) {
 	int delta = vruntime - min_vruntime;
 	if(delta < 0) min_vruntime = vruntime;
 	return min_vruntime;
 }
 
-int sched_period(int nr_running)
-{
+int sched_period(int nr_running) {
          int period = sched_latency;
          int nr_latency = sched_nr_latency;
  
@@ -816,35 +812,29 @@ int sched_period(int nr_running)
          return period;
 }
 
-extern unsigned int sched_timer()
-{
-
-return sched_latency;
+extern unsigned int sched_timer(){
+	return sched_latency;
 }
 
-extern unsigned int preempt_timer()
-{
-return sched_min_granularity;
+extern unsigned int preempt_timer() {
+	return sched_min_granularity;
 }
 
-void set_sched_timer(int nr_running)
-{
+void set_sched_timer(int nr_running) {
 	sched_latency = sched_period(nr_running);
 }
 
-void update_curr(struct timeval tv1, uthread_struct_t *cur_uthread)
-{
+void update_curr(struct timeval tv1, uthread_struct_t *cur_uthread) {
 	struct timeval tv2;
 	gettimeofday(&tv2, NULL);
 	unsigned int vtime = (tv2.tv_sec*100000+tv2.tv_usec)-(tv1.tv_sec*100000+tv1.tv_usec);
 	cur_uthread->vruntime += vtime;
+
 	if(&cur_uthread->vgroup != NULL){
-	gt_spin_lock(stat_lock);
-	vruntime[cur_uthread->uthread_gid]+= (double)vtime;
-	vruntime_thread[cur_uthread->uthread_gid][cur_uthread->uthread_tid]+= (double)vtime;
-	gt_spin_unlock(stat_lock);	
+		gt_spin_lock(stat_lock);
+		vruntime[cur_uthread->uthread_gid]+= (double)vtime;
+		vruntime_thread[cur_uthread->uthread_gid][cur_uthread->uthread_tid]+= (double)vtime;
+		gt_spin_unlock(stat_lock);
 	}
-	
-	
 }
 

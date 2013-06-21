@@ -46,8 +46,7 @@ static void gtthread_app_start(void *arg);
 
 /**********************************************************************/
 /* kthread creation */
-int kthread_create(kthread_t *tid, int (*kthread_start_func)(void *), void *arg)
-{
+int kthread_create( kthread_t *tid, int (*kthread_start_func)(void *), void *arg ){
 	int retval = 0;
 	void **stack;
 	int stacksize;
@@ -55,8 +54,7 @@ int kthread_create(kthread_t *tid, int (*kthread_start_func)(void *), void *arg)
 	stacksize = KTHREAD_DEFAULT_SSIZE;
 
 	/* Create the new thread's stack */
-	if(!(stack = (void **)MALLOC_SAFE(stacksize)))
-	{
+	if(!(stack = (void **)MALLOC_SAFE(stacksize))){
 		perror("No memory !!");
 		return -1;
 	}
@@ -64,36 +62,35 @@ int kthread_create(kthread_t *tid, int (*kthread_start_func)(void *), void *arg)
 
 	retval = clone(kthread_start_func, stack, CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND | SIGCHLD, arg);
 	printf("Cloned!");
-	if(retval > 0)
-	{
+
+	if(retval > 0){
 		*tid = retval;
 		return retval;
 	}
-	
 	return -1;
 }
 
-static int kthread_handler(void *arg)
-{
-#define k_ctx ((kthread_context_t *)arg)
+static int kthread_handler(void *arg){
+	#define k_ctx ((kthread_context_t *)arg)
+
+	#if 0
+		printf("Thread to be scheduled on cpu\n");
+	#endif
 	
-#if 0
-	printf("Thread to be scheduled on cpu\n");
-#endif
 	kthread_init(k_ctx);
-#if 0
-	printf("\nThread (tid : %u, pid : %u,  cpu : %d, cpu-apic-id %d) ready to run !!\n\n", 
+
+	#if 0
+		printf("\nThread (tid : %u, pid : %u,  cpu : %d, cpu-apic-id %d) ready to run !!\n\n",
 		k_ctx->tid, k_ctx->pid, k_ctx->cpuid, k_ctx->cpu_apic_id);
-#endif
+	#endif
 	
 	k_ctx->kthread_app_func(NULL);
-#undef k_ctx
+	#undef k_ctx
 	// free(arg);
 	return 0;
 }
 
-static void kthread_init(kthread_context_t *k_ctx)
-{
+static void kthread_init( kthread_context_t *k_ctx ){
 	int cpu_affinity_mask, cur_cpu_apic_id;
 
 	/* cpuid and kthread_app_func are set by the application 
@@ -120,42 +117,37 @@ static void kthread_init(kthread_context_t *k_ctx)
 
 	/* Scheduled on target cpu */
 	k_ctx->cpu_apic_id = kthread_apic_id();
-
 	kthread_cpu_map[k_ctx->cpu_apic_id] = k_ctx;
 
 	return;
 }
 
-static inline void kthread_exit()
-{
+static inline void kthread_exit(){
 	return;
 }
 /**********************************************************************/
 /* kthread schedule */
 
 /* Initialize the ksched_shared_info */
-static inline void ksched_info_init(ksched_shared_info_t *ksched_info)
-{
+static inline void ksched_info_init(ksched_shared_info_t *ksched_info){
 	gt_spinlock_init(&(ksched_info->ksched_lock));
 	gt_spinlock_init(&(ksched_info->uthread_init_lock));
 	gt_spinlock_init(&(ksched_info->__malloc_lock));
 	return;
 }
 
-static inline void KTHREAD_PRINT_SCHED_DEBUGINFO(kthread_context_t *k_ctx, char *str)
-{
-#if 0
-	struct timeval tv;
-	/* Thread-safe ?? */
-	gettimeofday(&tv, NULL);
-	printf("\n%s SIGNAL (cpu : %d, apic_id : %d) (ts : %d)\n",
+static inline void KTHREAD_PRINT_SCHED_DEBUGINFO(kthread_context_t *k_ctx, char *str){
+	#if 0
+		struct timeval tv;
+		/* Thread-safe ?? */
+		gettimeofday(&tv, NULL);
+		printf("\n%s SIGNAL (cpu : %d, apic_id : %d) (ts : %d)\n",
 		str, k_ctx->cpuid, k_ctx->cpu_apic_id, tv.tv_usec);
-#endif
+	#endif
 	return;
 }
 
-extern kthread_runqueue_t *ksched_find_target(uthread_struct_t *u_obj)
-{
+extern kthread_runqueue_t *ksched_find_target( uthread_struct_t *u_obj ){
 	ksched_shared_info_t *ksched_info;
 	unsigned int target_cpu, u_gid;
 
@@ -164,8 +156,7 @@ extern kthread_runqueue_t *ksched_find_target(uthread_struct_t *u_obj)
 
 	target_cpu = ksched_info->last_ugroup_kthread[u_gid];
 	
-	do
-	{
+	do{
 		/* How dumb to assume there is atleast one cpu (haha) !! :-D */
 		target_cpu = ((target_cpu + 1) % GT_MAX_CORES);
 	} while(!kthread_cpu_map[target_cpu]);
@@ -177,15 +168,14 @@ extern kthread_runqueue_t *ksched_find_target(uthread_struct_t *u_obj)
 	u_obj->cpu_id = kthread_cpu_map[target_cpu]->cpuid;
 	u_obj->last_cpu_id = kthread_cpu_map[target_cpu]->cpuid;
 
-#if 0
-	printf("Target uthread (id:%d, group:%d) : cpu(%d)\n", u_obj->uthread_tid, u_obj->uthread_gid, kthread_cpu_map[target_cpu]->cpuid);
-#endif
+	#if 0
+		printf("Target uthread (id:%d, group:%d) : cpu(%d)\n", u_obj->uthread_tid, u_obj->uthread_gid, kthread_cpu_map[target_cpu]->cpuid);
+	#endif
 
 	return(&(kthread_cpu_map[target_cpu]->krunqueue));
 }
 
-static void ksched_cosched(int signal)
-{
+static void ksched_cosched( int signal ) {
 	/* [1] Reads the uthread-select-criterion set by schedule-master.
 	 * [2] Read NULL. Jump to [5]
 	 * [3] Tries to find a matching uthread.
@@ -208,28 +198,23 @@ static void ksched_cosched(int signal)
 	cur_k_ctx = kthread_cpu_map[kthread_apic_id()];
 	KTHREAD_PRINT_SCHED_DEBUGINFO(cur_k_ctx, "RELAY(USR)");
 
-#ifdef CO_SCHED
-	uthread_schedule(&sched_find_best_uthread_group);
-#else
-	uthread_schedule(&sched_find_best_uthread);
-#endif
+	#ifdef CO_SCHED
+		uthread_schedule(&sched_find_best_uthread_group);
+	#else
+		uthread_schedule(&sched_find_best_uthread);
+	#endif
 
 	// kthread_unblock_signal(SIGVTALRM);
 	// kthread_unblock_signal(SIGUSR1);
 	return;
 }
 
-static void ksched_announce_cosched_group()
-{
+static void ksched_announce_cosched_group(){
 	/* Set the current running uthread_group  */
 	return;
 }
 
-
-
-
-static void ksched_priority(int signo)
-{
+static void ksched_priority(int signo){
 	/* [1] Tries to find the next schedulable uthread.
 	 * [2] Not Found - Sets uthread-select-criterion to NULL. Jump to [4].
 	 * [3] Found -  Sets uthread-select-criterion(if any) {Eg. uthread_group}.
@@ -249,12 +234,10 @@ static void ksched_priority(int signo)
 	KTHREAD_PRINT_SCHED_DEBUGINFO(cur_k_ctx, "VTALRM");
 
 	/* Relay the signal to all other virtual processors(kthreads) */
-	for(inx=0; inx<GT_MAX_KTHREADS; inx++)
-	{
+	for(inx=0; inx<GT_MAX_KTHREADS; inx++){
 		/* XXX: We can avoid the last check (tmp to cur) by
 		 * temporarily marking cur as DONE. But chuck it !! */
-		if((tmp_k_ctx = kthread_cpu_map[inx]) && (tmp_k_ctx != cur_k_ctx))
-		{
+		if((tmp_k_ctx = kthread_cpu_map[inx]) && (tmp_k_ctx != cur_k_ctx)){
 			if(tmp_k_ctx->kthread_flags & KTHREAD_DONE)
 				continue;
 			/* tkill : send signal to specific threads */
@@ -275,21 +258,19 @@ static void ksched_priority(int signo)
  * All application cleanup must be done at the end of this function. */
 extern unsigned int gtthread_app_running;
 
-static void gtthread_app_start(void *arg)
-{
+static void gtthread_app_start(void *arg) {
 	kthread_context_t *k_ctx;
 
 	k_ctx = kthread_cpu_map[kthread_apic_id()];
 	assert((k_ctx->cpu_apic_id == kthread_apic_id()));
 
-#if 0
-	printf("kthread (%d) ready to schedule", k_ctx->cpuid);
-#endif
-	while(!(k_ctx->kthread_flags & KTHREAD_DONE))
-	{
+	#if 0
+		printf("kthread (%d) ready to schedule", k_ctx->cpuid);
+	#endif
+
+	while(!(k_ctx->kthread_flags & KTHREAD_DONE)) {
 		__asm__ __volatile__ ("pause\n");
-		if(sigsetjmp(k_ctx->kthread_env, 0))
-		{
+		if(sigsetjmp(k_ctx->kthread_env, 0)){
 			/* siglongjmp to this point is done when there
 			 * are no more uthreads to schedule.*/
 			/* XXX: gtthread app cleanup has to be done. */
@@ -303,9 +284,7 @@ static void gtthread_app_start(void *arg)
 }
 
 
-
-extern void gtthread_app_init()
-{
+extern void gtthread_app_init() {
 	kthread_context_t *k_ctx, *k_ctx_main;
 	kthread_t k_tid;
 	unsigned int num_cpus, inx;
@@ -328,18 +307,16 @@ extern void gtthread_app_init()
 	num_cpus = (int)sysconf(_SC_NPROCESSORS_CONF);
 	//ksched_shared_info.num_cpus=num_cpus;
 	//ksched_shared_info.factor = (num_cpus-1)/num_cpus;
-#if 0
-	fprintf(stderr, "Number of cores : %d\n", num_cores);
-#endif
+	#if 0
+		fprintf(stderr, "Number of cores : %d\n", num_cores);
+	#endif
 	/* kthreads (virtual processors) on all other logical processors */
-	for(inx=1; inx<num_cpus; inx++)
-	{
+	for(inx=1; inx<num_cpus; inx++)	{
 		k_ctx = (kthread_context_t *)MALLOCZ_SAFE(sizeof(kthread_context_t));
 		k_ctx->cpuid = inx;
 		k_ctx->kthread_app_func = &gtthread_app_start;
 		/* kthread_init called inside kthread_handler */
-		if(kthread_create(&k_tid, kthread_handler, (void *)k_ctx) < 0)
-		{
+		if(kthread_create(&k_tid, kthread_handler, (void *)k_ctx) < 0){
 			fprintf(stderr, "kthread creation failed (errno:%d)\n", errno );
 			exit(0);
 		}
@@ -350,30 +327,28 @@ extern void gtthread_app_init()
 	{
 		/* yield till other kthreads initialize */
 		int init_done;
-yield_again:
-		sched_yield();
-		init_done = 0;
-		for(inx=0; inx<GT_MAX_KTHREADS; inx++)
-		{
+		yield_again:
+			sched_yield();
+			init_done = 0;
+			for(inx=0; inx<GT_MAX_KTHREADS; inx++){
 			/* XXX: We can avoid the last check (tmp to cur) by
 			 * temporarily marking cur as DONE. But chuck it !! */
-			if(kthread_cpu_map[inx])
-				init_done++;
+				if(kthread_cpu_map[inx])
+					init_done++;
+			}
+			assert(init_done <= num_cpus);
+			if(init_done < num_cpus)
+				goto yield_again;
 		}
-		assert(init_done <= num_cpus);
-		if(init_done < num_cpus)
-			goto yield_again;
-	}
 
-#if 0
-	/* app-func is called for main in gthread_app_exit */
-	k_ctx_main->kthread_app_func(NULL);
-#endif
+	#if 0
+		/* app-func is called for main in gthread_app_exit */
+		k_ctx_main->kthread_app_func(NULL);
+	#endif
 	return;
 }
 
-extern void gtthread_app_exit()
-{
+extern void gtthread_app_exit() {
 	/* gtthread_app_exit called by only main thread. */
 	/* For main thread, trigger start again. */
 	kthread_context_t *k_ctx;
@@ -381,11 +356,9 @@ extern void gtthread_app_exit()
 	k_ctx = kthread_cpu_map[kthread_apic_id()];
 	k_ctx->kthread_flags &= ~KTHREAD_DONE;
 
-	while(!(k_ctx->kthread_flags & KTHREAD_DONE))
-	{
+	while(!(k_ctx->kthread_flags & KTHREAD_DONE)){
 		__asm__ __volatile__ ("pause\n");
-		if(sigsetjmp(k_ctx->kthread_env, 0))
-		{
+		if(sigsetjmp(k_ctx->kthread_env, 0)){
 			/* siglongjmp to this point is done when there
 			 * are no more uthreads to schedule.*/
 			/* XXX: gtthread app cleanup has to be done. */
@@ -397,8 +370,7 @@ extern void gtthread_app_exit()
 	kthread_block_signal(SIGVTALRM);
 	kthread_block_signal(SIGUSR1);
 
-	while(ksched_shared_info.kthread_cur_uthreads)
-	{
+	while(ksched_shared_info.kthread_cur_uthreads){
 		/* Main thread has to wait for other kthreads */
 		__asm__ __volatile__ ("pause\n");
 	}
