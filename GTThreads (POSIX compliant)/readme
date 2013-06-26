@@ -1,9 +1,10 @@
-Vinay Bharadwaj (#902825919)
+GTTHREADS - POSIX Compliant Threads Library
+Vinay Bharadwaj
 ##GTThreads user level thread library.
 
-
 PLATFORM USED:
-Developed on Fedora 15. Tested on Fedora 13 x64 and Fedora 15.
+Developed on Fedora 15, Ubuntu 13.04. Tested on Fedora 13 x64 Fedora 15 and Ubuntu 13.04 x64.
+Atomic operations work only on 64 bit processors due to the use of %rax 64 bit register.
 
 PREEMPTIVE SCHEDULER:
 
@@ -22,14 +23,14 @@ HOW TO COMPILE:
 1) Extract the tarball into a folder.
 2) From the shell prompt run make as follows:
 	# make
-3) This should generate the library file gttrhead.a
+3) This should generate the object files.
 4) Compile your program with the library and execute it as follows:
-	# gcc main.c gtthread.a
+	# gcc main.c *.o
 	# ./a.out
    OR
 
-	# gcc -o test main.c gtthread.a
-	# test
+	# gcc -o myprogram main.c *.o
+	# myprogram
 
 Some thoughts:
    setcontext() doesn't work well with signals. Works fine with Fedora 15 but on Fedora 13 (default glibc) gives 
@@ -38,5 +39,9 @@ problem. setcontext() also caused unexpected behaviour and overflows on infinite
 
 Overall, it was a good experience developing this library. Hope to make more changes and expand it in the future. Need to 
 try the sigsetjmp() and siglongjmp() approach next. 
+
+Updates:
+1) Included Atomic test and set, increment, decrement, modulus operations.
+2) Modularized code.
 
    
