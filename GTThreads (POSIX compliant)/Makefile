@@ -4,32 +4,32 @@ CFLAGS  = ## -Wall -pedantic
 LFLAGS  =
 CC      = gcc
 RM      = /bin/rm -rf
-AR      = ar rc
-RANLIB  = ranlib
-
-LIBRARY = gtthread.a
 
 LIB_SRC = gtthread.c 
+LIB_MUTEX = gt_mutex.c 
+LIB_CONTEXT = gt_context.c 
+LIB_SIGNALS = gt_signals.c 
+LIB_ATOMIC = gt_atomic_ops.c
 
-LIB_OBJ = $(patsubst %.c,%.o,$(LIB_SRC))
+LIB_OBJ = gt_mutex.o gt_atomic_ops.o gt_signals.o gt_context.o gtthread.o
 
 # pattern rule for object files
 %.o: %.c
 	        $(CC) -c $(CFLAGS) $< -o $@
 
-all: $(LIBRARY)
+all: $(LIB_OBJ)
 
-$(LIBRARY): $(LIB_OBJ)
-	        $(AR) $(LIBRARY) $(LIB_OBJ)
-	        $(RANLIB) $(LIBRARY)
-
-$(LIB_OBJ) : $(LIB_SRC)
-	$(CC) -c $(CFLAGS) $< -o $@
+$(LIB_OBJ) : $(LIB_SRC) $(LIB_MUTEX) $(LIB_CONTEXT) $(LIB_SIGNALS) $(LIB_ATOMIC)
+	$(CC) -c $(CFLAGS) gtthread.c -o gtthread.o
+	$(CC) -c $(CFLAGS) gt_atomic_ops.c -o gt_atomic_ops.o 
+	$(CC) -c $(CFLAGS) gt_signals.c -o gt_signals.o
+	$(CC) -c $(CFLAGS) gt_context.c -o gt_context.o
+	$(CC) -c $(CFLAGS) gt_mutex.c -o gt_mutex.o
 
 $(LIB_SRC):
 
 clean:
-	        $(RM) $(LIBRARY) $(LIB_OBJ)
+	        $(RM) $(LIB_OBJ) 
 
 .PHONY: depend
 depend:

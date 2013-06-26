@@ -1,5 +1,5 @@
-	  #include "gtthread.h"
-	  /* din_philo.c */
+      #include "gtthread.h"
+	
       #include <stdio.h>
       #include <unistd.h>
       #include <stdlib.h>
@@ -29,7 +29,7 @@
    	      char **argv)
     	{
     	    int i;
-    	    gtthread_init( 1000 );
+    	    gtthread_init( 10000 );
     	    if (argn == 2)
     	        sleep_seconds = atoi (argv[1]);
 
@@ -50,7 +50,7 @@
     	    int i, left_chopstick, right_chopstick, f;
 
     	    id = (intptr_t)num;
-    	    //printf ("Philosopher %d is done thinking and now ready to eat.\n", id);
+    	    printf ("Philosopher %d is done thinking and now ready to eat.\n", id);
     	    right_chopstick = id;
     	    left_chopstick = id + 1;
 
@@ -70,12 +70,12 @@
     	        grab_chopstick (id, right_chopstick, "right ");
     	        grab_chopstick (id, left_chopstick, "left");
 
-    	        //printf ("Philosopher %d: eating.\n", id);
+    	        printf ("Philosopher %d: eating.\n", id);
     	        usleep (DELAY * (FOOD - f + 1));
     	        down_chopsticks (left_chopstick, right_chopstick);
     	    }
 
-    	   //printf ("Philosopher %d is done eating.\n", id);
+    	    printf ("Philosopher %d is done eating.\n", id);
     	    return (NULL);
     	}
 
@@ -100,7 +100,7 @@
     	                char *hand)
     	{
     		gtthread_mutex_lock (&chopstick[c]);
-    		//printf ("Philosopher %d: got %s chopstick %d\n", phil, hand, c);
+    		printf ("Philosopher %d: got %s chopstick %d\n", phil, hand, c);
     	}
 
     	void

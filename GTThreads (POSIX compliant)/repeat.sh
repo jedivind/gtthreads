@@ -1,6 +1,6 @@
 make clean
 make
-gcc -o test main.c gtthread.a
-./test
-rm ./test
+gcc -o dining dining_philosophers.c *.o
+./dining
+rm ./dining
 make clean
